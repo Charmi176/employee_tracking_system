@@ -3,6 +3,7 @@
   import 'employee_screen.dart';
   import 'employee_profile_screen.dart';
   import  'employee_settings_screen.dart';
+  import 'employee_calender_screen.dart';
 
   class HomeScreen extends StatefulWidget {
     const HomeScreen({super.key});
@@ -26,7 +27,7 @@
       final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
       return Scaffold(
         key: _scaffoldKey,
-        drawer: const SideMenu(),
+        endDrawer: const SideMenu(),
         backgroundColor: isDark ? Colors.black : const Color(0xFFF3F4F6),
 
 
@@ -107,7 +108,7 @@
                             isSelected: false,
                             isSquare: true,
                             onTap: () {
-                              _scaffoldKey.currentState?.openDrawer();
+                              _scaffoldKey.currentState?.openEndDrawer();
                             },
                           ),
                         ],
@@ -662,10 +663,20 @@
                   const SizedBox(height: 10),
 
                   // 🔵 BOTTOM MENU
-                  _bottomItem(Icons.person, "Profile", 2),
+                  _bottomItem(Icons.admin_panel_settings,"Administration",2),
+
+                  _bottomItem(Icons.contacts,"Contacts",3),
+                  _bottomItem(Icons.calendar_month_sharp,"Calander",4),
+                  _bottomItem(Icons.contact_support,"Support",2),
+
+                  _bottomItem(Icons.show_chart,"Chart",2),
+
+                  _bottomItem(Icons.admin_panel_settings,"Authentication",2),
+
+                  _bottomItem(Icons.person, "Profile", 3),
 
 
-                  _bottomItem(Icons.settings, "Settings", 3),
+                  _bottomItem(Icons.settings, "Settings", 4),
 
 
 
@@ -788,8 +799,49 @@
 
           Navigator.pop(context); // drawer close
 
+          // Addministration Navigation
+
+          // Contact Navigation
+
+
+
+          if (index == 4) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const CalendarScreen(),
+              ),
+            );
+          }
+          // //Support Navigation
+          // if (index == 5) {
+          //   Navigator.push(
+          //     context,
+          //     MaterialPageRoute(
+          //       builder: (context) => const ChartScreen(),
+          //     ),
+          //   );
+          // }
+          // //chart Navigation
+          // if (index == 6) {
+          //   Navigator.push(
+          //     context,
+          //     MaterialPageRoute(
+          //       builder: (context) => const AuthenticationScreen(),
+          //     ),
+          //   );
+          // }
+          //Authentication Navigation
+          if (index == 8) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const EmployeeProfileScreen(),
+              ),
+            );
+          }
           // 🔥 PROFILE NAVIGATION
-          if (index == 2) {
+          if (index == 7) {
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -799,7 +851,7 @@
           }
 
 
-          if (index == 3) {
+          if (index == 8  ) {
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -1162,8 +1214,8 @@
                       ),
                     ),
 
-                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: true)),
+                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: true)),
                   ),
 
                   barGroups: _getBarData(),
