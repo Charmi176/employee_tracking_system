@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart'; // flutterfire configure પછી generate થાય છે
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 🔥 Firebase initialize
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await Supabase.initialize(
+    url: 'https://ngaananoaatqwcikxuob.supabase.co',
+    anonKey: 'sb_publishable_T5h4UqYEdpNWYVlMgeUGjg_PaKFIl3T',
+  );
 
   runApp(const MyApp());
 }
@@ -20,7 +21,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Employee Dashboard',
-      theme: ThemeData(scaffoldBackgroundColor: const Color(0xFFF3F4F6)),
+      theme: ThemeData(
+        scaffoldBackgroundColor: const Color(0xFFF3F4F6),
+      ),
       home: HomeScreen(),
     );
   }

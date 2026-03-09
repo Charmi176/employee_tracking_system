@@ -16,6 +16,7 @@
     int LogoutSelected = 0;
     int touchedIndex = -1;
     bool isDark = false;
+    Color primaryColor = const Color(0xFF1E63E9);
 
 
     final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
@@ -182,6 +183,18 @@
 
                   const SizedBox(height: 20),
 
+                  UpcomingInterviewCard(isDark: isDark),
+
+                  const SizedBox(height: 20),
+
+                  const SizedBox(height: 20),
+
+                  MessageCard(isDark: isDark),
+
+                  const SizedBox(height: 20),
+
+                  RecentActivityCard(),
+
 
 
 
@@ -262,7 +275,7 @@
 
   //////////////////////////////////////////////////////////
 
-  class StatCard extends StatelessWidget {
+  class StatCard extends StatefulWidget {
     final String title;
     final String value;
     final IconData icon;
@@ -281,79 +294,117 @@
     });
 
     @override
+    State<StatCard> createState() => _StatCardState();
+  }
+
+  class _StatCardState extends State<StatCard> {
+    bool isHover = false;
+
+    @override
     Widget build(BuildContext context) {
-      return Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: isDark ? Colors.grey[900] : Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 10,
-              color: Colors.black.withOpacity(0.05),
-            )
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
+      return MouseRegion(
+        onEnter: (_) => setState(() => isHover = true),
+        onExit: (_) => setState(() => isHover = false),
 
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: TextStyle(
-                        color: isDark ? Colors.white70 : Colors.grey)),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
 
-                const SizedBox(height: 8),
+          /// 🔥 Upar uthva mate
+          transform: Matrix4.translationValues(0, isHover ? -8 : 0, 0),
 
-                Text(value,
-                    style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black)),
+          padding: const EdgeInsets.all(18),
+          margin: const EdgeInsets.symmetric(vertical: 8),
 
-                const SizedBox(height: 8),
+          decoration: BoxDecoration(
+            color: widget.isDark ? Colors.grey[900] : Colors.white,
+            borderRadius: BorderRadius.circular(22),
 
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: color.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.arrow_upward,
-                              size: 14, color: color),
-                          const SizedBox(width: 4),
-                          Text(change,
-                              style: TextStyle(
-                                  color: color,
-                                  fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text("vs last month",
-                        style: TextStyle(
-                            color: isDark ? Colors.white60 : Colors.grey)),
-                  ],
-                )
-              ],
-            ),
-
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
-                shape: BoxShape.circle,
+            /// 🔥 PREMIUM SHADOW
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(isHover ? 0.15 : 0.08),
+                blurRadius: isHover ? 30 : 18,
+                spreadRadius: 1,
+                offset: Offset(0, isHover ? 18 : 10),
               ),
-              child: Icon(icon, color: color),
-            )
-          ],
+            ],
+
+            /// 🔥 soft border (premium look)
+            border: Border.all(
+              color: Colors.grey.withOpacity(0.08),
+            ),
+          ),
+
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+
+              /// LEFT TEXT
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(widget.title,
+                      style: TextStyle(
+                          color:
+                          widget.isDark ? Colors.white60 : Colors.grey,
+                          fontSize: 12)),
+
+                  const SizedBox(height: 8),
+
+                  Text(widget.value,
+                      style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: widget.isDark
+                              ? Colors.white
+                              : Colors.black)),
+
+                  const SizedBox(height: 8),
+
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: widget.color.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.arrow_upward,
+                                size: 14, color: widget.color),
+                            const SizedBox(width: 4),
+                            Text(widget.change,
+                                style: TextStyle(
+                                    color: widget.color,
+                                    fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text("vs last month",
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: widget.isDark
+                                  ? Colors.white60
+                                  : Colors.grey)),
+                    ],
+                  )
+                ],
+              ),
+
+              /// RIGHT ICON
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: widget.color.withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(widget.icon, color: widget.color, size: 22),
+              )
+            ],
+          ),
         ),
       );
     }
@@ -1510,6 +1561,533 @@
               color: Colors.grey,
             ),
           ],
+        ),
+      );
+    }
+  }
+  class UpcomingInterviewCard extends StatelessWidget {
+    final bool isDark;
+
+    const UpcomingInterviewCard({super.key, required this.isDark});
+
+    @override
+    Widget build(BuildContext context) {
+      return Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.grey[900] : Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: [
+            BoxShadow(
+              blurRadius: 10,
+              color: Colors.black.withOpacity(0.05),
+            )
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            // 🔵 HEADER
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Upcoming Interviews",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: isDark ? Colors.white : Colors.black,
+                  ),
+                ),
+
+                Text(
+                  "Today, 17 Nov 2024",
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                )
+              ],
+            ),
+
+            const SizedBox(height: 15),
+
+            // 🔵 LIST
+            _interviewRow("10.30", "Web Developer", "Robinson Cruso"),
+            _interviewRow("11.45", "UI/UX Designer", "Rabiul Basher"),
+            _interviewRow("12.30", "Software Engineer", "Rohan Robin"),
+
+            const SizedBox(height: 15),
+
+            // 🔵 BUTTON
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.blue,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    blurRadius: 10,
+                    color: Colors.blue.withOpacity(0.3),
+                  )
+                ],
+              ),
+              child: const Center(
+                child: Text(
+                  "View more interviews",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            )
+          ],
+        ),
+      );
+    }
+
+    ////////////////////////////////////////////////////
+
+    Widget _interviewRow(String time, String role, String name) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+
+            // 🔵 TIME
+            SizedBox(
+              width: 60,
+              child: Text(
+                time,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+
+            // 🔵 LINE
+            Container(
+              width: 1,
+              height: 50,
+              color: Colors.grey.shade300,
+            ),
+
+            const SizedBox(width: 10),
+
+            // 🔵 CARD
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF6F7FB),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          role,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          name,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const Icon(Icons.more_horiz, color: Colors.grey),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+  class MessageCard extends StatelessWidget {
+    final bool isDark;
+
+    const MessageCard({super.key, required this.isDark});
+
+    @override
+    Widget build(BuildContext context) {
+      return Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.grey[900] : Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: [
+            BoxShadow(
+              blurRadius: 10,
+              color: Colors.black.withOpacity(0.05),
+            )
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            /// HEADER
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "New Message",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: isDark ? Colors.white : Colors.black,
+                  ),
+                ),
+                const Icon(Icons.more_horiz, color: Colors.grey),
+              ],
+            ),
+
+            const SizedBox(height: 15),
+
+            /// LIST
+            _messageRow(
+                "assets/images/f1.jpg",
+                "Tayeb Rahman",
+                "Great service by Nyales thank...",
+                true),
+
+            _messageRow(
+                "assets/images/f3.jpg",
+                "Tayeb Rahman",
+                "Great service by Nyales thank...",
+                true),
+
+            _messageRow("assets/images/f2.png", "Taranta Aley", "I want to Leave for Today...", false),
+          ],
+        ),
+      );
+    }
+
+    ////////////////////////////////////////////////////
+
+    Widget _messageRow(
+        String image, String name, String msg, bool isOnline) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
+          children: [
+
+            /// PROFILE
+            Stack(
+              children: [
+                CircleAvatar(
+                  radius: 22,
+                  backgroundImage: AssetImage(image),
+                ),
+
+                if (isOnline)
+                  Positioned(
+                    right: 2,
+                    bottom: 2,
+                    child: Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                    ),
+                  )
+              ],
+            ),
+
+            const SizedBox(width: 10),
+
+            /// TEXT
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    msg,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            /// BLUE DOT
+            Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(
+                color: Colors.blue,
+                shape: BoxShape.circle,
+              ),
+            )
+          ],
+        ),
+      );
+    }
+  }
+  class RecentActivityCard extends StatelessWidget {
+    const RecentActivityCard({super.key});
+
+    @override
+    Widget build(BuildContext context) {
+      return Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E63E9),
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: [
+            BoxShadow(
+              blurRadius: 12,
+              color: Colors.blue.withOpacity(0.4),
+            )
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            /// HEADER
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Recent Activity",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Container(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    "10:40 AM",
+                    style: TextStyle(color: Colors.white, fontSize: 12),
+                  ),
+                )
+              ],
+            ),
+
+            const SizedBox(height: 15),
+
+            /// TITLE
+            const Text(
+              "You Posted a New Job",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            /// DESC
+            const Text(
+              "Kindly check the requirements and terms of work and make sure everything is right.",
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 12,
+              ),
+            ),
+
+            const SizedBox(height: 15),
+
+            /// FOOTER
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+
+                const Text(
+                  "Today: 12 Activities",
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    "See All Activity",
+                    style: TextStyle(
+                      color: Color(0xFF1E63E9),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                )
+              ],
+            )
+          ],
+        ),
+      );
+    }
+  }
+  class SettingsDrawer extends StatelessWidget {
+    final bool isDark;
+    final Color primaryColor;
+    final Function(bool) onThemeChange;
+    final Function(Color) onColorChange;
+
+    const SettingsDrawer({
+      super.key,
+      required this.isDark,
+      required this.primaryColor,
+      required this.onThemeChange,
+      required this.onColorChange,
+    });
+
+    @override
+    Widget build(BuildContext context) {
+      return Drawer(
+        width: 320,
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+
+                const Text("Select Layout",
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+
+                const SizedBox(height: 10),
+
+                _layoutCard("Light", !isDark),
+                _layoutCard("Dark", isDark),
+
+                const SizedBox(height: 20),
+
+                const Text("Sidebar Menu Color",
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+
+                const SizedBox(height: 10),
+
+                Row(
+                  children: [
+                    _toggleBtn("Light", !isDark, () {
+                      onThemeChange(false);
+                    }),
+                    _toggleBtn("Dark", isDark, () {
+                      onThemeChange(true);
+                    }),
+                  ],
+                ),
+
+                const SizedBox(height: 20),
+
+                const Text("Color Theme",
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+
+                const SizedBox(height: 10),
+
+                Wrap(
+                  spacing: 10,
+                  children: [
+                    _colorCircle(Colors.black),
+                    _colorCircle(const Color(0xFF5B6EF5)),
+                    _colorCircle(Colors.orange),
+                    _colorCircle(Colors.teal),
+                    _colorCircle(Colors.green),
+                    _colorCircle(Colors.blue),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    //////////////////////////////////////////////////////////
+
+    Widget _layoutCard(String text, bool selected) {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          border: Border.all(
+              color: selected ? Colors.blue : Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            Icon(selected ? Icons.check_circle : Icons.circle_outlined,
+                color: selected ? Colors.blue : Colors.grey),
+            const SizedBox(width: 10),
+            Text(text),
+          ],
+        ),
+      );
+    }
+
+    //////////////////////////////////////////////////////////
+
+    Widget _toggleBtn(String text, bool selected, VoidCallback onTap) {
+      return Expanded(
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              color: selected ? const Color(0xFF5B6EF5) : Colors.transparent,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: Center(
+              child: Text(
+                text,
+                style: TextStyle(
+                  color: selected ? Colors.white : Colors.black,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    //////////////////////////////////////////////////////////
+
+    Widget _colorCircle(Color color) {
+      return GestureDetector(
+        onTap: () => onColorChange(color),
+        child: CircleAvatar(
+          backgroundColor: color,
+          child: primaryColor == color
+              ? const Icon(Icons.check, color: Colors.white, size: 16)
+              : null,
         ),
       );
     }
