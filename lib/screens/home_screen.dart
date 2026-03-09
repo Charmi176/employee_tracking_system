@@ -196,6 +196,9 @@
 
                   RecentActivityCard(),
 
+                  WeeklyAttendanceCard(isDark: isDark),
+
+                  const SizedBox(height: 20),
 
 
 
@@ -573,6 +576,7 @@
   class _SideMenuState extends State<SideMenu> {
     int selectedIndex = 0;
     bool isLogoutSelected = false;
+    bool showAdminMenu = false;
 
     @override
     Widget build(BuildContext context) {
@@ -663,7 +667,52 @@
                   const SizedBox(height: 10),
 
                   // 🔵 BOTTOM MENU
-                  _bottomItem(Icons.admin_panel_settings,"Administration",2),
+
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        showAdminMenu = !showAdminMenu;
+                      });
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(vertical: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.admin_panel_settings, color: Colors.grey),
+                          const SizedBox(width: 10),
+                          const Text(
+                            "Administration",
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                          const Spacer(),
+                          Icon(
+                            showAdminMenu
+                                ? Icons.keyboard_arrow_up
+                                : Icons.keyboard_arrow_down,
+                            color: Colors.grey,
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  /// 🔵 ADMIN SUBMENU
+                  if (showAdminMenu) ...[
+
+                    Padding(
+                      padding: const EdgeInsets.only(left: 40),
+                      child: _bottomItem(Icons.person, "User Management", 20),
+                    ),
+
+                    Padding(
+                      padding: const EdgeInsets.only(left: 40),
+                      child: _bottomItem(Icons.settings, "System Setting", 21),
+                    ),
+                  ],
 
                   _bottomItem(Icons.contacts,"Contacts",3),
                   _bottomItem(Icons.calendar_month_sharp,"Calander",4),
@@ -799,9 +848,9 @@
 
           Navigator.pop(context); // drawer close
 
-          // Addministration Navigation
 
-          // Contact Navigation
+
+
 
 
 
@@ -2140,6 +2189,207 @@
           child: primaryColor == color
               ? const Icon(Icons.check, color: Colors.white, size: 16)
               : null,
+        ),
+      );
+    }
+  }
+  class WeeklyAttendanceCard extends StatelessWidget {
+    final bool isDark;
+
+    const WeeklyAttendanceCard({super.key, required this.isDark});
+
+    @override
+    Widget build(BuildContext context) {
+
+      final List<double> present = [230, 210, 220, 240, 215];
+      final List<double> absent = [10, 18, 12, 6, 14];
+      final List<double> late = [12, 15, 10, 8, 11];
+
+      return Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.grey[900] : Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: [
+            BoxShadow(
+              blurRadius: 10,
+              color: Colors.black.withOpacity(0.05),
+            )
+          ],
+        ),
+
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            /// TITLE
+            Text(
+              "Weekly Attendance",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: isDark ? Colors.white : Colors.black,
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            /// LEGEND
+            Row(
+              children: const [
+                Icon(Icons.circle, size: 10, color: Colors.green),
+                SizedBox(width: 5),
+                Text("Present"),
+                SizedBox(width: 20),
+                Icon(Icons.circle, size: 10, color: Colors.red),
+                SizedBox(width: 5),
+                Text("Absent"),
+                SizedBox(width: 20),
+                Icon(Icons.circle, size: 10, color: Colors.orange),
+                SizedBox(width: 5),
+                Text("Late"),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            /// BAR CHART
+            SizedBox(
+              height: 200,
+              child: BarChart(
+                BarChartData(
+                  maxY: 260,
+                  alignment: BarChartAlignment.spaceAround,
+
+                  borderData: FlBorderData(show: false),
+
+                  gridData: FlGridData(
+                    show: true,
+                    horizontalInterval: 50,
+                    getDrawingHorizontalLine: (value) {
+                      return FlLine(
+                        color: Colors.grey.withOpacity(0.2),
+                        strokeWidth: 1,
+                      );
+                    },
+                  ),
+
+                  titlesData: FlTitlesData(
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: true, interval: 50),
+                    ),
+
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (value, meta) {
+
+                          const days = [
+                            "Mon",
+                            "Tue",
+                            "Wed",
+                            "Thu",
+                            "Fri"
+                          ];
+
+                          return Text(
+                            days[value.toInt()],
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark ? Colors.white60 : Colors.grey,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+
+                    rightTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+
+                    topTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                  ),
+
+                  barGroups: List.generate(5, (index) {
+                    return BarChartGroupData(
+                      x: index,
+                      barsSpace: 3,
+                      barRods: [
+
+                        /// PRESENT
+                        BarChartRodData(
+                          toY: present[index],
+                          width: 6,
+                          color: Colors.green,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+
+                        /// ABSENT
+                        BarChartRodData(
+                          toY: absent[index],
+                          width: 6,
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+
+                        /// LATE
+                        BarChartRodData(
+                          toY: late[index],
+                          width: 6,
+                          color: Colors.orange,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ],
+                    );
+                  }),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            /// BUTTONS
+            Row(
+              children: [
+
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE9EEF8),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        "View Full Attendance History",
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 10),
+
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE9EEF8),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        "Generate Attendance Report",
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            )
+          ],
         ),
       );
     }
