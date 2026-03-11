@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'screens/home_screen.dart';
+
+import 'screens/auth/signin_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -9,7 +10,6 @@ void main() async {
     url: 'https://ngaananoaatqwcikxuob.supabase.co',
     anonKey: 'sb_publishable_T5h4UqYEdpNWYVlMgeUGjg_PaKFIl3T',
   );
-
   runApp(const MyApp());
 }
 
@@ -24,7 +24,9 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFFF3F4F6),
       ),
-      home: HomeScreen(),
+
+      // 🔥 IMPORTANT CHANGE
+      home: const SignInScreen(),
     );
   }
 }
