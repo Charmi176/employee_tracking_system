@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'forgot_password_screen.dart';
 import '../home_screen.dart';
 import '../employee_screen.dart';
-import '../contacts_screen.dart';
-import '../employee_profile_screen.dart';
+import '../employee_HrPolicies.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -13,183 +13,125 @@ class SignInScreen extends StatefulWidget {
 }
 
 class _SignInScreenState extends State<SignInScreen> {
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
-
-  String selectedRole = "admin";
-  bool isPasswordVisible = false;
-  bool isLoginLoading = false;
-  bool isRegisterLoading = false;
-
   final supabase = Supabase.instance.client;
 
-  // 🔐 LOGIN FUNCTION
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final nameController = TextEditingController();
+
+  bool isPasswordVisible = false;
+  bool isLoading = false;
+
+  /// 🔥 toggle (login / signup)
+  bool isSignUp = false;
+
+  /// 🔥 LOGIN
   Future<void> login() async {
-    setState(() => isLoginLoading = true);
+    if (emailController.text.isEmpty ||
+        passwordController.text.isEmpty) {
+      showSnack("Enter email & password ❌", false);
+      return;
+    }
+
+    setState(() => isLoading = true);
 
     try {
-      final response = await supabase.auth.signInWithPassword(
+      await supabase.auth.signInWithPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
 
-      final user = response.user;
+      // 🔥 EMAIL BASED ROLE (MAIN FIX)
+      String email = emailController.text.trim();
+      String role = '';
 
-      if (user == null) {
-        showError("User not found");
-        return;
-      }
-
-      final data = await supabase
-          .from('profiles')
-          .select()
-          .eq('id', user.id)
-          .maybeSingle();
-
-      if (data == null) {
-        showError("Role not assigned");
-        return;
-      }
-
-      String role = data['role'];
-
-      showSuccess("Login successful 🎉");
-
-      // 🚀 ROLE BASED NAVIGATION
-      if (role == "admin") {
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => const HomeScreen()));
-      } else if (role == "hr") {
-        Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const EmployeeProfileScreen()));
-      } else if (role == "employee") {
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => const EmployeeScreen()));
+      if (email == 'admin@gmail.com') {
+        role = 'admin';
+      } else if (email == 'hr@gmail.com') {
+        role = 'hr';
       } else {
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => const ContactsScreen()));
+        role = 'employee';
       }
+
+      if (!mounted) return;
+
+      //  NAVIGATION
+      if (role == 'admin') {
+        Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const HomeScreen()));
+      }
+      else if (role == 'hr') {
+        Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const EmployeeDocumentScreen()));
+      }
+      else {
+        Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const EmployeeScreen()));
+      }
+
     } catch (e) {
-      showError("Invalid email or password");
+      showSnack("Invalid email or password ", false);
     }
 
-    setState(() => isLoginLoading = false);
+    setState(() => isLoading = false);
   }
+  /// 🔥 SIGNUP
+  Future<void> signUp() async {
+    if (nameController.text.isEmpty ||
+        emailController.text.isEmpty ||
+        passwordController.text.isEmpty) {
+      showSnack("Fill all fields ❌", false);
+      return;
+    }
 
-  // 🔥 SIGNUP FUNCTION
-  Future<void> signUpUser() async {
-    setState(() => isRegisterLoading = true);
+    setState(() => isLoading = true);
 
     try {
       final res = await supabase.auth.signUp(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
+        data: {
+          'name': nameController.text.trim(),
+        },
       );
 
-      final user = res.user;
-
-      if (user != null) {
-        await supabase.from('profiles').insert({
-          'id': user.id,
-          'role': selectedRole,
-        });
-
-        showSuccess("Account created successfully ✅");
-      } else {
-        showError("Signup failed");
+      if (res.user != null) {
+        showSnack("Account created ✅", true);
+        setState(() => isSignUp = false);
       }
     } catch (e) {
-      showError(e.toString());
+      showSnack("Error: $e", false);
     }
 
-    setState(() => isRegisterLoading = false);
+    setState(() => isLoading = false);
   }
 
-  // ❌ ERROR
-  void showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg)),
-    );
-  }
-
-  // ✅ SUCCESS
-  void showSuccess(String msg) {
+  void showSnack(String msg, bool success) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(msg),
-        backgroundColor: Colors.green,
+        backgroundColor: success ? Colors.green : Colors.red,
       ),
     );
   }
 
-  // 🔘 ROLE BUTTON
-  Widget roleBtn(String text, String role, Color color) {
-    bool isSelected = selectedRole == role;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() => selectedRole = role);
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        margin: const EdgeInsets.only(right: 10, bottom: 10),
-        decoration: BoxDecoration(
-          color: isSelected ? color : color.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(25),
-        ),
-        child: Text(
-          text,
-          style: TextStyle(
-            color: isSelected ? Colors.white : color,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-
-  // 🔵 FORM SECTION
-  Widget formSection() {
+  Widget inputField({
+    required String hint,
+    required TextEditingController controller,
+    bool isPassword = false,
+  }) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("Sign in",
-            style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 10),
-        const Text("Enter your credentials to log in"),
-        const SizedBox(height: 20),
-
-        Wrap(
-          children: [
-            roleBtn("Admin", "admin", Colors.green),
-            roleBtn("HR", "hr", Colors.purple),
-            roleBtn("Employee", "employee", Colors.orange),
-            roleBtn("Client", "client", Colors.blue),
-          ],
-        ),
-
-        const SizedBox(height: 20),
-
         TextField(
-          controller: emailController,
+          controller: controller,
+          obscureText: isPassword && !isPasswordVisible,
           decoration: InputDecoration(
-            labelText: "Email",
-            border:
-            OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-          ),
-        ),
-
-        const SizedBox(height: 15),
-
-        TextField(
-          controller: passwordController,
-          obscureText: !isPasswordVisible,
-          decoration: InputDecoration(
-            labelText: "Password",
-            border:
-            OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-            suffixIcon: IconButton(
+            hintText: hint,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            suffixIcon: isPassword
+                ? IconButton(
               icon: Icon(isPasswordVisible
                   ? Icons.visibility
                   : Icons.visibility_off),
@@ -198,107 +140,198 @@ class _SignInScreenState extends State<SignInScreen> {
                   isPasswordVisible = !isPasswordVisible;
                 });
               },
-            ),
+            )
+                : null,
           ),
         ),
-
         const SizedBox(height: 15),
+      ],
+    );
+  }
 
-        /// 🔐 LOGIN BUTTON
-        SizedBox(
-          width: double.infinity,
-          height: 45,
-          child: ElevatedButton(
-              onPressed: isLoginLoading ? null : login,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.lightBlueAccent,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-            ),
-              child: isLoginLoading
-                ? const CircularProgressIndicator(color: Colors.white)
-            : const Text(
-              "Login",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            )
-          ),
+  /// 🔥 FORM (LOGIN / SIGNUP SWITCH)
+  Widget buildForm() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          isSignUp ? "Create account" : "Sign in",
+          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
         ),
 
         const SizedBox(height: 10),
 
-        /// 🔥 REGISTER BUTTON
+        Text(isSignUp
+            ? "Enter details to create your account"
+            : "Enter your credentials to log in"),
+
+        const SizedBox(height: 30),
+
+        /// 👉 NAME (only signup)
+        if (isSignUp)
+          inputField(
+            hint: "Name",
+            controller: nameController,
+          ),
+
+        inputField(
+          hint: "Email",
+          controller: emailController,
+        ),
+
+        inputField(
+          hint: "Password",
+          controller: passwordController,
+          isPassword: true,
+        ),
+
+        if (!isSignUp)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Checkbox(value: false, onChanged: (v) {}),
+                  const Text("Remember me"),
+                ],
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ForgotPasswordScreen(),
+                    ),
+                  );
+                },
+                child: const Text("Forgot Password?"),
+              ),
+            ],
+          ),
+
+        const SizedBox(height: 10),
+
         SizedBox(
           width: double.infinity,
-          height: 45,
-          child: ElevatedButton(
-              onPressed: isRegisterLoading ? null : signUpUser,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.grey,
-            ),
-              child: isRegisterLoading
-                ? const CircularProgressIndicator(color: Colors.white)
-                : const Text(
-              "Register",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+          height: 50,
+          child: InkWell(
+            onTap: isLoading
+                ? null
+                : isSignUp
+                ? signUp
+                : login,
+            child: Container(
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                gradient: const LinearGradient(
+                  colors: [
+                    Color(0xFFB49B86),
+                    Color(0xFF8E7AAE),
+                  ],
+                ),
               ),
-            )
+              child: isLoading
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : Text(
+                isSignUp ? "Create account" : "Login",
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        Center(
+          child: TextButton(
+            onPressed: () {
+              setState(() {
+                isSignUp = !isSignUp;
+              });
+            },
+            child: Text(
+              isSignUp
+                  ? "Already have an account? Login"
+                  : "Don't have an account? Sign up",
+            ),
           ),
         ),
       ],
     );
   }
 
-  // 🔵 IMAGE SECTION
-  Widget imageSection() {
-    return Center(
-      child: Image.network(
-        "https://cdn-icons-png.flaticon.com/512/4140/4140048.png",
-        height: 220,
-        fit: BoxFit.contain,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
-    bool isMobile = width < 600;
+    final isMobile = MediaQuery.of(context).size.width < 700;
 
     return Scaffold(
       backgroundColor: const Color(0xFFDCE9F1),
       body: Center(
-        child: Container(
-          width: isMobile ? double.infinity : 900,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: isMobile
-              ? SingleChildScrollView(
-            child: Column(
+        child: SingleChildScrollView(
+          child: Container(
+            width: isMobile ? double.infinity : 900,
+            height: isMobile ? null : 520,
+            margin: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
+
+            child: isMobile
+                ? Column(
               children: [
-                formSection(),
-                const SizedBox(height: 20),
-                imageSection(),
+                Container(
+                  height: 200,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFE7D9CC),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
+                    ),
+                  ),
+                  child: Center(
+                    child: Image.network(
+                      "https://cdn-icons-png.flaticon.com/512/4140/4140048.png",
+                      height: 120,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: buildForm(),
+                ),
+              ],
+            )
+                : Row(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(30),
+                    child: buildForm(),
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFE7D9CC),
+                      borderRadius: BorderRadius.only(
+                        topRight: Radius.circular(20),
+                        bottomRight: Radius.circular(20),
+                      ),
+                    ),
+                    child: Center(
+                      child: Image.network(
+                        "https://cdn-icons-png.flaticon.com/512/4140/4140048.png",
+                        height: 300,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
-          )
-              : Row(
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: formSection(),
-                ),
-              ),
-              Expanded(child: imageSection()),
-            ],
           ),
         ),
       ),

@@ -195,7 +195,7 @@ class _EmployeeDocumentScreenState extends State<EmployeeDocumentScreen> {
 
                         const SizedBox(height: 20),
 
-                        /// 📁 Upload Box
+
                         Container(
                           height: 120,
                           width: double.infinity,
