@@ -1,448 +1,249 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
-import 'package:excel/excel.dart' as ex;
-import 'package:path_provider/path_provider.dart';
 
-class EmployeeDocumentScreen extends StatefulWidget {
-  const EmployeeDocumentScreen({super.key});
-
-  @override
-  State<EmployeeDocumentScreen> createState() => _EmployeeDocumentScreenState();
+void main() {
+  runApp(const MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: HRPoliciesScreen(),
+  ));
 }
 
-class _EmployeeDocumentScreenState extends State<EmployeeDocumentScreen> {
+class HRPoliciesScreen extends StatefulWidget {
+  const HRPoliciesScreen({super.key});
 
-  /// ✅ Column Visibility
-  bool showName = true;
-  bool showType = true;
-  bool showDept = true;
-  bool showUpload = true;
-  bool showExpiry = true;
+  @override
+  State<HRPoliciesScreen> createState() => _HRPoliciesScreenState();
+}
+
+class _HRPoliciesScreenState extends State<HRPoliciesScreen> {
+
+  final List<Map<String, dynamic>> policies = [
+    {
+      "policy": "Code of Conduct",
+      "category": "General",
+      "dept": "HR",
+      "effective": "2025-01-01",
+      "revision": "2024-12-15",
+      "size": "1.2 MB",
+      "type": "PDF",
+      "status": "Active"
+    },
+    {
+      "policy": "Work From Home",
+      "category": "Remote Work",
+      "dept": "Operations",
+      "effective": "2025-02-01",
+      "revision": "2025-01-10",
+      "size": "0.9 MB",
+      "type": "PDF",
+      "status": "Active"
+    },
+    {
+      "policy": "Travel Policy",
+      "category": "Finance",
+      "dept": "Finance",
+      "effective": "2024-06-01",
+      "revision": "2024-05-20",
+      "size": "1.5 MB",
+      "type": "PDF",
+      "status": "In Review"
+    },
+  ];
+
+  Widget statusChip(String status) {
+    Color bg;
+    Color text;
+
+    if (status == "Active") {
+      bg = Colors.green.shade50;
+      text = Colors.green;
+    } else {
+      bg = Colors.blue.shade50;
+      text = Colors.blue;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(status, style: TextStyle(color: text)),
+    );
+  }
+
+  void showAddPolicyDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        child: SizedBox(
+          width: 600,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF6C72FF),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: const [
+                    Text("New HR Policy", style: TextStyle(color: Colors.white, fontSize: 18)),
+                    Icon(Icons.close, color: Colors.white)
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: const [
+                    TextField(decoration: InputDecoration(labelText: "Policy Name")),
+                    SizedBox(height: 15),
+                    TextField(decoration: InputDecoration(labelText: "Category")),
+                    SizedBox(height: 15),
+                    TextField(decoration: InputDecoration(labelText: "Department")),
+                    SizedBox(height: 15),
+                    TextField(decoration: InputDecoration(labelText: "Effective Date")),
+                    SizedBox(height: 15),
+                    TextField(decoration: InputDecoration(labelText: "Status")),
+                    SizedBox(height: 15),
+                    TextField(decoration: InputDecoration(labelText: "Tags")),
+                    SizedBox(height: 15),
+                    TextField(maxLines: 3, decoration: InputDecoration(labelText: "Description")),
+                  ],
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget toolbarIcon(IconData icon, Color color, {VoidCallback? onTap}) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 5),
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(5),
+        ),
+        child: Icon(icon, color: color, size: 20),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text("Employee Documents",
-            style: TextStyle(color: Colors.white, fontSize: 18)),
-        backgroundColor: const Color(0xFF1E63E9),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+      backgroundColor: const Color(0xFFF3F6F9),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(24),
         child: Column(
           children: [
 
-            /// 🔍 TOP TOOLBAR
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E63E9),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  /// Search Box
-                  Expanded(
-                    child: Container(
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const TextField(
-                        decoration: InputDecoration(
-                          hintText: "Search",
-                          prefixIcon: Icon(Icons.search, size: 20),
-                          border: InputBorder.none,
-                          contentPadding:
-                          EdgeInsets.symmetric(vertical: 10),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-
-                  GestureDetector(
-                    onTap: () => _showAddDocumentDialog(context),
-                    child: _topIcon(Icons.add, Colors.green),
-                  ),
-                  _topIcon(Icons.refresh, Colors.orange),
-
-                  /// ✅ FILTER ICON CLICK
-                  GestureDetector(
-                    onTap: () => _showColumnDialog(context),
-                    child: _topIcon(
-                        Icons.filter_alt, Colors.white.withOpacity(0.3)),
-                  ),
-
-                  _topIcon(Icons.file_download,
-                      Colors.white.withOpacity(0.3)),
-                ],
-              ),
+            /// HEADER
+            const Row(
+              children: [
+                Text("HR Policies", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                Spacer(),
+                Icon(Icons.home_outlined),
+                Text(" > Documents > HR Policies")
+              ],
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
-            /// 📊 TABLE
+            /// CARD
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.grey.shade200),
                 ),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-
-                        /// HEADER
-                        _buildTableHeader(),
-
-                        /// ROWS
-                        _buildTableRow(context, "John Doe", "Passport",
-                            "Operations", "2024-01-10", "2029-01-10", "1.5 MB"),
-                        _buildTableRow(context, "Jane Smith", "Visa", "HR",
-                            "2023-11-05", "2025-11-05", "2.1 MB"),
-                        _buildTableRow(context, "Mike Ross", "ID Card",
-                            "Legal", "2024-02-15", "2030-02-15", "800 KB"),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-  void _showAddDocumentDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Container(
-            width: MediaQuery.of(context).size.width * 0.8,
-            height: MediaQuery.of(context).size.height * 0.8,
-            child: Column(
-              children: [
-
-                /// 🔷 HEADER
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF5A67D8),
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text("Upload New Document",
-                          style: TextStyle(color: Colors.white, fontSize: 16)),
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: const Icon(Icons.close, color: Colors.white),
-                      )
-                    ],
-                  ),
-                ),
-
-                /// 🔽 BODY
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-
-                        _inputField("Policy Name"),
-                        const SizedBox(height: 12),
-
-                        Row(
-                          children: [
-                            Expanded(child: _inputField("Category*")),
-                            const SizedBox(width: 12),
-                            Expanded(child: _inputField("Department")),
-                          ],
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        Row(
-                          children: [
-                            Expanded(child: _inputField("Effective Date*")),
-                            const SizedBox(width: 12),
-                            Expanded(child: _inputField("Status")),
-                          ],
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        _inputField("Tags"),
-                        const SizedBox(height: 12),
-
-                        _inputField("Description", maxLines: 3),
-
-                        const SizedBox(height: 20),
-
-
-                        Container(
-                          height: 120,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                                color: Colors.blue,
-                                style: BorderStyle.solid),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Center(
-                            child: Text("Drag & Drop file here or Browse"),
-                          ),
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        Row(
-                          children: [
-                            Expanded(child: _inputField("File Size")),
-                            const SizedBox(width: 12),
-                            Expanded(child: _inputField("File Type")),
-                          ],
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        /// 🔘 Buttons
-                        Row(
-                          children: [
-                            ElevatedButton(
-                              onPressed: () {},
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.grey.shade300,
-                              ),
-                              child: const Text("Save",
-                                  style: TextStyle(color: Colors.black)),
-                            ),
-                            const SizedBox(width: 10),
-                            ElevatedButton(
-                              onPressed: () => Navigator.pop(context),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                              ),
-                              child: const Text("Cancel"),
-                            ),
-                          ],
-                        )
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-  Widget _inputField(String hint, {int maxLines = 1}) {
-    return TextField(
-      maxLines: maxLines,
-      decoration: InputDecoration(
-        hintText: hint,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      ),
-    );
-  }
-  /// 🔷 POPUP (Show/Hide Column)
-  void _showColumnDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Show/Hide Column"),
-          content: StatefulBuilder(
-            builder: (context, setStateDialog) {
-              return SingleChildScrollView(
                 child: Column(
                   children: [
 
-                    CheckboxListTile(
-                      title: const Text("Employee Name"),
-                      value: showName,
-                      onChanged: (val) {
-                        setState(() => showName = val!);
-                        setStateDialog(() {});
-                      },
+                    /// TOOLBAR
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          const Text("HR Policies List", style: TextStyle(fontWeight: FontWeight.bold)),
+                          const SizedBox(width: 20),
+
+                          Expanded(
+                            child: TextField(
+                              decoration: InputDecoration(
+                                hintText: "Search",
+                                prefixIcon: const Icon(Icons.search),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                          ),
+
+                          toolbarIcon(Icons.filter_list, Colors.blue),
+                          toolbarIcon(Icons.add, Colors.green, onTap: showAddPolicyDialog),
+                          toolbarIcon(Icons.refresh, Colors.orange),
+                          toolbarIcon(Icons.download, Colors.blue),
+                        ],
+                      ),
                     ),
 
-                    CheckboxListTile(
-                      title: const Text("Document Type"),
-                      value: showType,
-                      onChanged: (val) {
-                        setState(() => showType = val!);
-                        setStateDialog(() {});
-                      },
+                    /// TABLE
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: DataTable(
+                          columnSpacing: 30,
+                          columns: const [
+                            DataColumn(label: Icon(Icons.check_box_outline_blank)),
+                            DataColumn(label: Text("Policy Name")),
+                            DataColumn(label: Text("Category")),
+                            DataColumn(label: Text("Department")),
+                            DataColumn(label: Text("Effective Date")),
+                            DataColumn(label: Text("Last Revision")),
+                            DataColumn(label: Text("Size")),
+                            DataColumn(label: Text("Type")),
+                            DataColumn(label: Text("Download")),
+                            DataColumn(label: Text("Status")),
+                            DataColumn(label: Text("Actions")),
+                          ],
+                          rows: policies.map((p) {
+                            return DataRow(cells: [
+                              const DataCell(Icon(Icons.check_box_outline_blank)),
+                              DataCell(Text(p['policy'])),
+                              DataCell(Text(p['category'])),
+                              DataCell(Text(p['dept'])),
+                              DataCell(Text(p['effective'])),
+                              DataCell(Text(p['revision'])),
+                              DataCell(Text(p['size'])),
+                              DataCell(Text(p['type'])),
+                              const DataCell(Icon(Icons.download)),
+                              DataCell(statusChip(p['status'])),
+                              DataCell(Row(
+                                children: const [
+                                  Icon(Icons.edit, color: Colors.blue),
+                                  SizedBox(width: 10),
+                                  Icon(Icons.delete, color: Colors.red),
+                                ],
+                              )),
+                            ]);
+                          }).toList(),
+                        ),
+                      ),
                     ),
-
-                    CheckboxListTile(
-                      title: const Text("Department"),
-                      value: showDept,
-                      onChanged: (val) {
-                        setState(() => showDept = val!);
-                        setStateDialog(() {});
-                      },
-                    ),
-
-                    CheckboxListTile(
-                      title: const Text("Upload Date"),
-                      value: showUpload,
-                      onChanged: (val) {
-                        setState(() => showUpload = val!);
-                        setStateDialog(() {});
-                      },
-                    ),
-
-                    CheckboxListTile(
-                      title: const Text("Expiry Date"),
-                      value: showExpiry,
-                      onChanged: (val) {
-                        setState(() => showExpiry = val!);
-                        setStateDialog(() {});
-                      },
-                    ),
-
                   ],
                 ),
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
-
-  /// 🔹 Toolbar Icon
-  Widget _topIcon(IconData icon, Color bgColor) {
-    return Container(
-      margin: const EdgeInsets.only(left: 8),
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Icon(icon, color: Colors.white, size: 20),
-    );
-  }
-
-  /// 🔹 HEADER
-  Widget _buildTableHeader() {
-    return Container(
-      color: Colors.blue.shade50,
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        children: [
-          _cell("", width: 50, isHeader: true),
-
-          if (showName)
-            _cell("Employee Name", width: 150, isHeader: true),
-
-          if (showType)
-            _cell("Document Type", width: 130, isHeader: true),
-
-          if (showDept)
-            _cell("Department", width: 120, isHeader: true),
-
-          if (showUpload)
-            _cell("Upload Date", width: 110, isHeader: true),
-
-          if (showExpiry)
-            _cell("Expiry Date", width: 110, isHeader: true),
-
-          _cell("Size", width: 80, isHeader: true),
-          _cell("Action", width: 120, isHeader: true),
-        ],
-      ),
-    );
-  }
-
-  /// 🔹 ROW
-  Widget _buildTableRow(BuildContext context, String name, String type,
-      String dept, String upload, String expiry, String size) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
-      ),
-      child: Row(
-        children: [
-          const SizedBox(
-              width: 50,
-              child: Checkbox(value: false, onChanged: null)),
-
-          if (showName) _cell(name, width: 150),
-          if (showType) _cell(type, width: 130),
-          if (showDept) _cell(dept, width: 120),
-          if (showUpload) _cell(upload, width: 110),
-          if (showExpiry) _cell(expiry, width: 110),
-
-          _cell(size, width: 80),
-
-          /// ACTIONS
-          SizedBox(
-            width: 120,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _actionIcon(Icons.visibility, Colors.blue),
-                _actionIcon(Icons.edit, Colors.green),
-                _actionIcon(Icons.delete, Colors.red),
-                _actionIcon(Icons.download, Colors.orange),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 🔹 CELL
-  Widget _cell(String text,
-      {double width = 100, bool isHeader = false}) {
-    return Container(
-      width: width,
-      padding:
-      const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontWeight:
-          isHeader ? FontWeight.bold : FontWeight.normal,
-          fontSize: 13,
-          color: isHeader
-              ? Colors.blue.shade900
-              : Colors.black87,
+              ),
+            )
+          ],
         ),
       ),
-    );
-  }
-
-  /// 🔹 ACTION ICON
-  Widget _actionIcon(IconData icon, Color color) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Icon(icon, color: color, size: 18),
     );
   }
 }

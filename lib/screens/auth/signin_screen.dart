@@ -3,7 +3,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'forgot_password_screen.dart';
 import '../home_screen.dart';
 import '../employee_screen.dart';
-import '../employee_HrPolicies.dart';
+import '../hr_dashboard_screen.dart';
+
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -13,6 +14,7 @@ class SignInScreen extends StatefulWidget {
 }
 
 class _SignInScreenState extends State<SignInScreen> {
+
   final supabase = Supabase.instance.client;
 
   final emailController = TextEditingController();
@@ -35,46 +37,54 @@ class _SignInScreenState extends State<SignInScreen> {
 
     setState(() => isLoading = true);
 
-    try {
-      await supabase.auth.signInWithPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-      );
+    String email = emailController.text.trim();
+    String password = passwordController.text.trim();
 
-      // 🔥 EMAIL BASED ROLE (MAIN FIX)
-      String email = emailController.text.trim();
+    try {
       String role = '';
 
-      if (email == 'admin@gmail.com') {
+      /// 🔐 FIXED USERS
+      if (email == 'charmisoni2076@gmail.com' &&
+          password == 'Chand_2076') {
         role = 'admin';
-      } else if (email == 'hr@gmail.com') {
+      }
+      else if (email == 'jasooshuman@gmail.com' &&
+          password == 'angel_198') {
         role = 'hr';
-      } else {
+      }
+      else if (email == 'mishrisoni208@gmail.com' &&
+          password == 'Mishri_208') {
         role = 'employee';
       }
+      else {
+        showSnack("Invalid Email or Password ❌", false);
+        setState(() => isLoading = false);
+        return;
+      }
 
+      /// 🔥 NAVIGATION
       if (!mounted) return;
 
-      //  NAVIGATION
       if (role == 'admin') {
         Navigator.push(context,
             MaterialPageRoute(builder: (_) => const HomeScreen()));
       }
       else if (role == 'hr') {
         Navigator.push(context,
-            MaterialPageRoute(builder: (_) => const EmployeeDocumentScreen()));
+            MaterialPageRoute(builder: (_) => const HrDashboardScreen()));
       }
-      else {
+      else if (role == 'employee') {
         Navigator.push(context,
             MaterialPageRoute(builder: (_) => const EmployeeScreen()));
       }
 
     } catch (e) {
-      showSnack("Invalid email or password ", false);
+      showSnack("Login error ❌", false);
     }
 
     setState(() => isLoading = false);
   }
+
   /// 🔥 SIGNUP
   Future<void> signUp() async {
     if (nameController.text.isEmpty ||

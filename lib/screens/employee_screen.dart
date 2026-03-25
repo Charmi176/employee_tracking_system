@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'employee_client_screen.dart';
 import 'employee_work_sheet.dart';
+import 'hr_dashboard_screen.dart';
 
 void main() {
   runApp(const EmployeeScreen());
@@ -23,7 +24,7 @@ class EmployeeScreen extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       scrollBehavior: MyCustomScrollBehavior(),
-      theme: ThemeData.dark(),
+      theme: ThemeData.light(),
       home: const DashboardUI(),
     );
   }
@@ -43,7 +44,7 @@ class _DashboardUIState extends State<DashboardUI> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D0D),
+      backgroundColor: const Color(0xFFF5F5F5),
       body: Scrollbar(
         controller: _horizontalController,
         thumbVisibility: true,
@@ -69,6 +70,7 @@ class _DashboardUIState extends State<DashboardUI> {
                       title: Text("DASHBOARD"),
                       subtitle: Text("WORKSPACE", style: TextStyle(color: Colors.grey, fontSize: 10)),
                     ),
+                    menuItem(Icons.dashboard_customize, "HR Dashboard", activeColor: Colors.purple),
                     menuItem(Icons.public, "Clients", activeColor: Colors.blue),
                     menuItem(Icons.calendar_today, "Appointments", activeColor: Colors.orange),
                     menuItem(Icons.shopping_cart, "shop", activeColor: Colors.pink),
@@ -144,7 +146,14 @@ class _DashboardUIState extends State<DashboardUI> {
 
     return InkWell(
       onTap: () {
-
+        if (title == "HR Dashboard") {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const HrDashboardScreen(),
+            ),
+          );
+        }
         // 🔥 Clients Screen Navigation
         if (title == "Clients") {
           Navigator.push(
@@ -159,7 +168,7 @@ class _DashboardUIState extends State<DashboardUI> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const WorkLogScreen(),
+              builder: (context) => const WorkLogsScreen(),
             ),
           );
         }
@@ -171,7 +180,7 @@ class _DashboardUIState extends State<DashboardUI> {
           children: [
             Icon(icon, color: isSelected ? activeColor : Colors.grey, size: 20),
             const SizedBox(width: 15),
-            Text(title, style: TextStyle(color: isSelected ? Colors.white : Colors.grey)),
+            Text(title, style: TextStyle(color: isSelected ? Colors.black : Colors.grey)),
           ],
         ),
       ),
@@ -184,7 +193,7 @@ class _DashboardUIState extends State<DashboardUI> {
       width: 260,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF131313),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white10),
       ),
