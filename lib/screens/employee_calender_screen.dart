@@ -14,37 +14,36 @@ class _CalendarScreenState extends State<CalendarScreen> {
   bool showHolidayOnly = false;
   String viewMode = "month";
 
-  Map<String, String> getRandomHoliday(DateTime day) {
-    final titles = [
-      "Public Holiday",
-      "Festival Holiday",
-      "National Holiday",
-      "Company Holiday",
-      "Special Leave Day"
-    ];
 
-    final descriptions = [
-      "This is a holiday. Please enjoy your day.",
-      "Office is closed today due to holiday.",
-      "Take rest and spend time with your family.",
-      "Holiday declared by organization.",
-      "Enjoy your break and relax."
-    ];
-
-    final randomTitle = titles[day.day % titles.length];
-    final randomDesc = descriptions[day.day % descriptions.length];
-
-    return {
-      "title": randomTitle,
-      "desc": randomDesc,
-    };
-  }
 
   bool isHoliday(DateTime day) {
-    return day.weekday == DateTime.sunday;
+    return day.day % 5 == 0;
   }
+  Map<String, String> getRandomHoliday(DateTime day) {
+    final Map<String, Map<String, String>> holidays = {
+      "2026-04-10": {
+        "title": "Festival Holiday",
+        "desc": "Festival celebration holiday."
+      },
+      "2026-04-15": {
+        "title": "Public Holiday",
+        "desc": "Government declared holiday."
+      },
+      "2026-04-20": {
+        "title": "Company Holiday",
+        "desc": "Company closed today."
+      },
+    };
 
-  // રજા માટેનું સુંદર Blue Theme Dialog Box
+    String key =
+        "${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}";
+
+    return holidays[key] ??
+        {
+          "title": "",
+          "desc": "",
+        };
+  }
   void _showHolidayDialog(DateTime day) {
     final holiday = getRandomHoliday(day);
 
@@ -62,9 +61,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const Text(   // 🔥 HARD ENGLISH
+              "Date",
+              style: TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 5),
             Text(
-              "Date: ${day.day} ${_monthName(day.month)}, ${day.year}",
-              style: const TextStyle(color: Colors.grey),
+              "${day.day} ${_monthName(day.month)}, ${day.year}",
             ),
             const SizedBox(height: 10),
             Text(holiday['desc']!),
@@ -73,13 +76,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Close"),
+            child: const Text("OK"), // 🔥 ENGLISH
           )
         ],
       ),
     );
   }
-
   @override
   Widget build(BuildContext context) {
     bool isMobile = MediaQuery.of(context).size.width < 800;
@@ -223,18 +225,45 @@ class _CalendarScreenState extends State<CalendarScreen> {
       calendarBuilders: CalendarBuilders(
         defaultBuilder: (context, day, focusedDay) {
           if (showHolidayOnly && !isHoliday(day)) return const SizedBox();
+
           if (isHoliday(day)) {
+            final holiday = getRandomHoliday(day);
+
             return Container(
-              margin: const EdgeInsets.all(5),
+              margin: const EdgeInsets.all(4),
+              padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 color: Colors.blue.shade50,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: Colors.blue.shade200),
               ),
-              alignment: Alignment.center,
-              child: Text("${day.day}", style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "${day.day}",
+                    style: const TextStyle(
+                      color: Colors.blue,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Flexible( // ✅ FIX
+                    child: Text(
+                      holiday['title']!,
+                      style: const TextStyle(
+                        fontSize: 9,
+                        color: Colors.blue,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1, // ✅ FIX
+                    ),
+                  ),
+                ],
+              ),
             );
           }
+
           return null;
         },
       ),

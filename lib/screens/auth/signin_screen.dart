@@ -13,9 +13,20 @@ class SignInScreen extends StatefulWidget {
   State<SignInScreen> createState() => _SignInScreenState();
 }
 
+
 class _SignInScreenState extends State<SignInScreen> {
 
   final supabase = Supabase.instance.client;
+  @override
+  void initState() {
+    super.initState();
+
+    final session = supabase.auth.currentSession;
+
+    if (session != null) {
+      isSignUp = true;
+    }
+  }
 
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -23,8 +34,10 @@ class _SignInScreenState extends State<SignInScreen> {
 
   bool isPasswordVisible = false;
   bool isLoading = false;
+  String? selectedRole;
+  List<String> roles = ["admin", "hr", "employee", "client"];
 
-  /// 🔥 toggle (login / signup)
+
   bool isSignUp = false;
 
   /// 🔥 LOGIN
@@ -45,19 +58,22 @@ class _SignInScreenState extends State<SignInScreen> {
 
       /// 🔐 FIXED USERS
       if (email == 'charmisoni2076@gmail.com' &&
-          password == 'Chand_2076') {
+          password == 'Chand_2076' &&
+          selectedRole == 'admin') {
         role = 'admin';
       }
-      else if (email == 'jasooshuman@gmail.com' &&
-          password == 'angel_198') {
+        else if (email == 'jasooshuman@gmail.com' &&
+          password == 'angel_198' &&
+          selectedRole == 'hr') {
         role = 'hr';
       }
       else if (email == 'mishrisoni208@gmail.com' &&
-          password == 'Mishri_208') {
+          password == 'Mishri_208' &&
+          selectedRole == 'employee') {
         role = 'employee';
       }
       else {
-        showSnack("Invalid Email or Password ❌", false);
+        showSnack("Invalid credentials ❌", false);
         setState(() => isLoading = false);
         return;
       }
@@ -66,18 +82,19 @@ class _SignInScreenState extends State<SignInScreen> {
       if (!mounted) return;
 
       if (role == 'admin') {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (_) => const HomeScreen()));
+        if (role == 'admin') {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const HomeScreen()));
+        }
+        else if (role == 'hr') {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const HrDashboardScreen()));
+        }
+        else if (role == 'employee') {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const EmployeeScreen()));
+        }
       }
-      else if (role == 'hr') {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (_) => const HrDashboardScreen()));
-      }
-      else if (role == 'employee') {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (_) => const EmployeeScreen()));
-      }
-
     } catch (e) {
       showSnack("Login error ❌", false);
     }
@@ -102,6 +119,7 @@ class _SignInScreenState extends State<SignInScreen> {
         password: passwordController.text.trim(),
         data: {
           'name': nameController.text.trim(),
+          'role': selectedRole,
         },
       );
 
@@ -183,18 +201,137 @@ class _SignInScreenState extends State<SignInScreen> {
             hint: "Name",
             controller: nameController,
           ),
-
-        inputField(
-          hint: "Email",
+        if (isSignUp)
+          Column(
+            children: [
+              // DropdownButtonFormField<String>(
+              //   value: selectedRole,
+              //   hint: const Text("Select Role"),
+              //   items: roles.map((role) {
+              //     return DropdownMenuItem(
+              //       value: role,
+              //       child: Text(role.toUpperCase()),
+              //     );
+              //   }).toList(),
+              //   onChanged: (value) {
+              //     setState(() {
+              //       selectedRole = value!;
+              //     });
+              //   },
+              //   decoration: InputDecoration(
+              //     border: OutlineInputBorder(
+              //       borderRadius: BorderRadius.circular(10),
+              //     ),
+              //   ),
+              // ),
+              const SizedBox(height: 15),
+            ],
+          ),
+        // DropdownButtonFormField<String>(
+        //   value: selectedRole,
+        //   items: roles.map((role) {
+        //     return DropdownMenuItem(
+        //       value: role,
+        //       child: Text(role.toUpperCase()),
+        //     );
+        //   }).toList(),
+        //   onChanged: (value) {
+        //     setState(() {
+        //       selectedRole = value!;
+        //     });
+        //   },
+        //   decoration: InputDecoration(
+        //     border: OutlineInputBorder(
+        //       borderRadius: BorderRadius.circular(10),
+        //     ),
+        //   ),
+        // ),
+        TextField(
           controller: emailController,
+          enabled: selectedRole != null, // 🔥 MAIN CHANGE
+          decoration: InputDecoration(
+            hintText: selectedRole == null
+                ? "Select role first"
+                : "Email",
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
         ),
+        const SizedBox(height: 15),
+        const SizedBox(height: 15),
+        const SizedBox(height: 15),
 
-        inputField(
-          hint: "Password",
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.deepPurple.shade50,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.deepPurple.withOpacity(0.2),
+                blurRadius: 6,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: DropdownButtonFormField<String>(
+            value: selectedRole,
+            hint: const Text(
+              "Select Role",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            icon: const Icon(Icons.person, color: Colors.deepPurple),
+            dropdownColor: Colors.white,
+            items: roles.map((role) {
+              return DropdownMenuItem(
+                value: role,
+                child: Text(
+                  role.toUpperCase(),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                selectedRole = value!;
+              });
+            },
+            decoration: InputDecoration(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 15),
+        TextField(
           controller: passwordController,
-          isPassword: true,
+          obscureText: !isPasswordVisible,
+          enabled: selectedRole != null,
+          decoration: InputDecoration(
+            hintText: selectedRole == null
+                ? "Select role first"
+                : "Password",
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            suffixIcon: IconButton(
+              icon: Icon(isPasswordVisible
+                  ? Icons.visibility
+                  : Icons.visibility_off),
+              onPressed: () {
+                setState(() {
+                  isPasswordVisible = !isPasswordVisible;
+                });
+              },
+            ),
+          ),
         ),
-
         if (!isSignUp)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
